@@ -1,1 +1,1844 @@
-1
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SaDaS® Cairo — The Operating System for Autonomous Urban Districts</title>
+    <!-- Tailwind + Font Awesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+        :root { --primary: #0077B6; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: #0A1A2F; color: #fff; }
+        .heading-font { font-family: 'Space Grotesk', sans-serif; }
+
+        .hero-bg { background: linear-gradient(135deg, #0A1A2F 0%, #1E2A4A 100%); }
+        .nav-link { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .nav-link:hover { color: #00B4D8; transform: translateY(-2px); }
+        .card { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-12px); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4); }
+        .section-title { position: relative; }
+        .section-title:after {
+            content: '';
+            position: absolute;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(to right, #0077B6, #00B4D8);
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .section-title-left:after { left: 0; transform: none; }
+        .glass { background: rgba(255,255,255,0.03); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.08); }
+
+        /* language dropdown */
+        .lang-dropdown {
+            background: rgba(10, 26, 47, 0.92);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 16px;
+            padding: 0.5rem 0;
+            min-width: 170px;
+            box-shadow: 0 20px 40px -12px rgba(0,0,0,0.6);
+        }
+        .lang-item {
+            padding: 0.5rem 1.2rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 0.9rem;
+            color: #e0e0e0;
+        }
+        .lang-item:hover { background: rgba(0, 119, 182, 0.25); color: white; }
+        .lang-item.active { color: #00B4D8; font-weight: 600; }
+
+        /* RTL support for Arabic (ar) and Lahnda (lah) */
+        [dir="rtl"] .section-title:after { left: 50%; transform: translateX(50%); }
+        [dir="rtl"] .flex.gap-5 { flex-direction: row-reverse; }
+        [dir="rtl"] .text-left { text-align: right; }
+
+        /* back-to-top */
+        #backToTop {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 99;
+            background: #0077B6;
+            color: white;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0,119,182,0.4);
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            opacity: 0;
+            pointer-events: none;
+        }
+        #backToTop.visible { opacity: 1; pointer-events: auto; }
+        #backToTop:hover { background: #00B4D8; transform: scale(1.05); }
+
+        /* mobile menu */
+        .mobile-menu {
+            background: rgba(10, 26, 47, 0.96);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .mobile-menu a { display: block; padding: 0.8rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .mobile-menu a:hover { background: rgba(0,119,182,0.2); }
+
+        /* scroll hint */
+        .scroll-hint {
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        /* --- Fullscreen button for animation --- */
+        #fullscreenBtn {
+            position: fixed;
+            bottom: 6rem;
+            right: 2rem;
+            z-index: 90;
+            background: rgba(0, 119, 182, 0.8);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: white;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        #fullscreenBtn:hover { background: #00B4D8; transform: scale(1.05); }
+
+        /* animation placeholder: the cinematic canvas sits behind the hero */
+        #cinematicContainer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        #cinematicContainer canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .hero-section {
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+        /* when fullscreen active on the container, we handle it via JS */
+        #cinematicContainer.fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 9999;
+            pointer-events: auto;
+            opacity: 1;
+            background: #050508;
+        }
+        #cinematicContainer.fullscreen canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        #cinematicContainer.fullscreen ~ .hero-content {
+            display: none;
+        }
+        #cinematicContainer.fullscreen ~ header {
+            display: none;
+        }
+        #cinematicContainer.fullscreen ~ #fullscreenBtn {
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        /* close fullscreen hint */
+        .fs-hint {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255,255,255,0.2);
+            font-size: 11px;
+            letter-spacing: 2px;
+            font-family: 'Inter', sans-serif;
+            pointer-events: none;
+            z-index: 10000;
+            display: none;
+        }
+        #cinematicContainer.fullscreen .fs-hint {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<!-- BACK TO TOP BUTTON -->
+<button id="backToTop" aria-label="Back to top">
+    <i class="fa-solid fa-chevron-up"></i>
+</button>
+
+<!-- HEADER -->
+<header class="sticky top-0 z-50 bg-[#0A1A2F]/80 backdrop-blur-lg border-b border-white/10">
+    <div class="max-w-screen-2xl mx-auto px-6 lg:px-8 py-4 flex items-center justify-between">
+        <!-- logo -->
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 bg-gradient-to-br from-[#0077B6] to-[#00B4D8] rounded-2xl flex items-center justify-center text-xl font-bold shadow-lg shadow-[#0077B6]/30">S</div>
+            <div>
+                <span class="heading-font text-2xl font-semibold tracking-tight">SaDaS®</span>
+                <span class="text-[#00B4D8] font-medium">Cairo</span>
+            </div>
+        </div>
+
+        <!-- desktop nav -->
+        <nav class="hidden md:flex items-center gap-8 text-sm font-medium">
+            <a href="#platform" class="nav-link" data-i18n="nav.platform">Platform</a>
+            <a href="#modules" class="nav-link" data-i18n="nav.modules">Modules</a>
+            <a href="#benefits" class="nav-link" data-i18n="nav.benefits">Benefits</a>
+            <a href="#use-cases" class="nav-link" data-i18n="nav.useCases">Use Cases</a>
+        </nav>
+
+        <!-- right: lang + buttons + mobile toggle -->
+        <div class="flex items-center gap-3">
+            <!-- language switcher -->
+            <div class="relative inline-block text-left" id="langDropdownContainer">
+                <button id="langToggle" class="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-white/20 rounded-2xl hover:bg-white/5 transition-all">
+                    <i class="fa-solid fa-globe"></i>
+                    <span id="currentLangLabel">EN</span>
+                    <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                </button>
+                <div id="langMenu" class="absolute right-0 mt-2 w-48 origin-top-right lang-dropdown hidden z-50">
+                    <div class="lang-item active" data-lang="en">🇬🇧 English</div>
+                    <div class="lang-item" data-lang="ru">🇷🇺 Русский</div>
+                    <div class="lang-item" data-lang="zh">🇨🇳 中文</div>
+                    <div class="lang-item" data-lang="es">🇪🇸 Español</div>
+                    <div class="lang-item" data-lang="hi">🇮🇳 हिन्दी</div>
+                    <div class="lang-item" data-lang="ar">🇸🇦 العربية</div>
+                    <div class="lang-item" data-lang="bn">🇧🇩 বাংলা</div>
+                    <div class="lang-item" data-lang="pt">🇵🇹 Português</div>
+                    <div class="lang-item" data-lang="ja">🇯🇵 日本語</div>
+                    <div class="lang-item" data-lang="lah">🇵🇰 لہندا</div>
+                </div>
+            </div>
+
+            <button onclick="document.getElementById('demo-form').scrollIntoView({ behavior: 'smooth' })" 
+                    class="hidden sm:inline-block px-5 py-2.5 text-sm font-semibold border border-white/30 hover:border-white/70 rounded-2xl transition-colors" data-i18n="header.demo">
+                Request demo
+            </button>
+            <button onclick="document.getElementById('demo-form').scrollIntoView({ behavior: 'smooth' })" 
+                    class="hidden sm:inline-block px-5 py-2.5 text-sm font-semibold bg-[#0077B6] hover:bg-[#00B4D8] rounded-2xl transition-all shadow-lg shadow-[#0077B6]/30" data-i18n="header.start">
+                Start project
+            </button>
+
+            <!-- mobile hamburger -->
+            <button id="mobileMenuToggle" class="md:hidden text-2xl px-2" aria-label="Toggle menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- mobile menu (hidden by default) -->
+    <div id="mobileMenu" class="mobile-menu md:hidden hidden">
+        <a href="#platform" data-i18n="nav.platform" class="nav-link">Platform</a>
+        <a href="#modules" data-i18n="nav.modules" class="nav-link">Modules</a>
+        <a href="#benefits" data-i18n="nav.benefits" class="nav-link">Benefits</a>
+        <a href="#use-cases" data-i18n="nav.useCases" class="nav-link">Use Cases</a>
+        <div class="flex flex-col gap-2 p-4 border-t border-white/10">
+            <button onclick="document.getElementById('demo-form').scrollIntoView({ behavior: 'smooth' })" 
+                    class="w-full py-3 text-sm font-semibold border border-white/30 hover:border-white/70 rounded-2xl transition-colors" data-i18n="header.demo">
+                Request demo
+            </button>
+            <button onclick="document.getElementById('demo-form').scrollIntoView({ behavior: 'smooth' })" 
+                    class="w-full py-3 text-sm font-semibold bg-[#0077B6] hover:bg-[#00B4D8] rounded-2xl transition-all shadow-lg shadow-[#0077B6]/30" data-i18n="header.start">
+                Start project
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- HERO with Cinematic Background -->
+<section class="hero-bg min-h-screen flex items-center relative overflow-hidden hero-section">
+    <!-- Cinematic Container (3D Scene) -->
+    <div id="cinematicContainer">
+        <!-- The canvas will be injected here by the script -->
+        <div class="fs-hint">⏎ Press ESC or click again to exit fullscreen</div>
+    </div>
+
+    <div class="absolute inset-0 bg-[radial-gradient(at_center,#00B4D820_0%,transparent_70%)]"></div>
+    <div class="max-w-screen-2xl mx-auto px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center relative z-10 pt-16 pb-20 hero-content">
+        <div class="space-y-8">
+            <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-5 py-2 rounded-3xl text-sm border border-white/20">
+                <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+                <span data-i18n="hero.badge">AI-native Urban OS</span>
+            </div>
+            <h1 class="heading-font text-5xl md:text-7xl font-bold leading-[1.1] tracking-tighter">
+                <span data-i18n="hero.title1">Build the</span><br>
+                <span data-i18n="hero.title2">Autonomous</span><br>
+                <span data-i18n="hero.title3">District of</span><br>
+                <span class="text-[#00B4D8]" data-i18n="hero.title4">Tomorrow</span>
+            </h1>
+            <p class="text-xl text-gray-300 max-w-lg" data-i18n="hero.desc">
+                SaDaS® Cairo — AI-platform for digital transformation of urban districts. A unified system for monitoring, forecasting, and autonomous management of all city infrastructure.
+            </p>
+            <div class="flex flex-wrap gap-4">
+                <button onclick="document.getElementById('demo-form').scrollIntoView({ behavior: 'smooth' })" 
+                        class="px-8 py-4 bg-white text-[#0A1A2F] font-semibold rounded-3xl hover:scale-105 transition-all flex items-center gap-3 text-lg shadow-xl shadow-white/10">
+                    <i class="fa-solid fa-play"></i> <span data-i18n="hero.demoBtn">Request demo</span>
+                </button>
+                <button class="px-8 py-4 border border-white/40 hover:bg-white/10 font-semibold rounded-3xl transition-all" data-i18n="hero.videoBtn">
+                    Watch video
+                </button>
+            </div>
+            <div class="flex items-center gap-6 pt-4">
+                <div class="flex -space-x-3">
+                    <div class="w-9 h-9 rounded-2xl bg-[#0077B6] flex items-center justify-center text-xs ring-2 ring-[#0A1A2F]">🇪🇬</div>
+                    <div class="w-9 h-9 rounded-2xl bg-[#00B4D8] flex items-center justify-center text-xs ring-2 ring-[#0A1A2F]">🏛️</div>
+                </div>
+                <div class="text-sm">
+                    <div class="text-emerald-400 font-medium" data-i18n="hero.trust">Trusted by leaders</div>
+                    <div class="text-gray-400" data-i18n="hero.trustDetail">Ministry of Housing • Cairo Governorate</div>
+                </div>
+            </div>
+        </div>
+        <!-- hero image (replaced by cinematic, but kept as fallback) -->
+        <div class="relative hidden lg:block">
+            <div class="bg-gradient-to-br from-[#1E2A4A] to-[#0A1A2F] border border-white/10 rounded-3xl p-2 shadow-2xl shadow-[#0077B6]/20">
+                <img src="https://picsum.photos/id/1015/800/620" alt="3D Digital Twin Model of Cairo District" class="rounded-3xl w-full object-cover aspect-[4/3] loading="lazy" />
+                <div class="absolute -bottom-4 -right-4 bg-[#0A1A2F]/90 border border-white/20 rounded-2xl p-5 max-w-[220px] backdrop-blur-sm">
+                    <div class="flex justify-between items-center mb-3">
+                        <div class="text-emerald-400 text-sm font-medium" data-i18n="hero.statusLabel">District status</div>
+                        <div class="text-xs bg-emerald-900/50 text-emerald-400 px-3 py-1 rounded-full" data-i18n="hero.statusValue">Optimal</div>
+                    </div>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between"><span class="text-gray-400" data-i18n="hero.energy">Energy</span><span class="font-medium">-12%</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400" data-i18n="hero.traffic">Traffic</span><span class="font-medium" data-i18n="hero.trafficVal">Optimized</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400" data-i18n="hero.safety">Safety</span><span class="font-medium text-emerald-400" data-i18n="hero.safetyVal">High</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 z-10">
+        <div class="text-xs tracking-widest text-gray-400" data-i18n="hero.scroll">SCROLL</div>
+        <i class="fa-solid fa-chevron-down scroll-hint text-gray-400"></i>
+    </div>
+</section>
+
+<!-- FULLSCREEN TOGGLE BUTTON -->
+<button id="fullscreenBtn" aria-label="Toggle fullscreen cinematic">
+    <i class="fa-solid fa-expand"></i>
+</button>
+
+<!-- ===== REST OF THE LANDING PAGE (unchanged) ===== -->
+
+<!-- ONE PLATFORM -->
+<section id="platform" class="py-24 bg-[#0F2339]">
+    <div class="max-w-screen-2xl mx-auto px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="section-title heading-font text-5xl font-semibold inline-block">
+                <span data-i18n="platform.title1">One Platform.</span><br>
+                <span data-i18n="platform.title2">Every Urban System.</span>
+            </h2>
+            <p class="mt-6 text-gray-400 max-w-xl mx-auto text-lg" data-i18n="platform.sub">
+                Integrated solution for all aspects of modern urban district operations
+            </p>
+        </div>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="bg-[#1A314F] p-8 rounded-3xl card border border-white/5 hover:border-[#0077B6]/40">
+                <div class="text-4xl mb-6">🧬</div>
+                <h3 class="text-2xl font-semibold mb-3" data-i18n="platform.card1.title">Digital Twin</h3>
+                <p class="text-gray-400" data-i18n="platform.card1.desc">Real-time 3D representation of the district with full data synchronization.</p>
+            </div>
+            <div class="bg-[#1A314F] p-8 rounded-3xl card border border-white/5 hover:border-[#0077B6]/40">
+                <div class="text-4xl mb-6">🗺️</div>
+                <h3 class="text-2xl font-semibold mb-3" data-i18n="platform.card2.title">GeoSpatial Intelligence</h3>
+                <p class="text-gray-400" data-i18n="platform.card2.desc">Interactive GIS system with spatial analysis and decision support.</p>
+            </div>
+            <div class="bg-[#1A314F] p-8 rounded-3xl card border border-white/5 hover:border-[#0077B6]/40">
+                <div class="text-4xl mb-6">🧠</div>
+                <h3 class="text-2xl font-semibold mb-3" data-i18n="platform.card3.title">AI Decision Engine</h3>
+                <p class="text-gray-400" data-i18n="platform.card3.desc">Predictive analytics and autonomous optimization of all processes.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CORE MODULES -->
+<section id="modules" class="py-24">
+    <div class="max-w-screen-2xl mx-auto px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="section-title heading-font text-5xl font-semibold inline-block" data-i18n="modules.title">Core Platform Modules</h2>
+        </div>
+        <div class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+            <div class="p-6 rounded-3xl bg-white/5 hover:bg-white/10 transition-all flex items-center gap-4 border border-white/5 hover:border-[#00B4D8]/30">
+                <i class="fa-solid fa-cube text-3xl text-[#00B4D8]"></i>
+                <span class="font-semibold" data-i18n="modules.m1">Digital Twin Platform</span>
+            </div>
+            <div class="p-6 rounded-3xl bg-white/5 hover:bg-white/10 transition-all flex items-center gap-4 border border-white/5 hover:border-[#00B4D8]/30">
+                <i class="fa-solid fa-map text-3xl text-[#00B4D8]"></i>
+                <span class="font-semibold" data-i18n="modules.m2">GIS Intelligence Engine</span>
+            </div>
+            <div class="p-6 rounded-3xl bg-white/5 hover:bg-white/10 transition-all flex items-center gap-4 border border-white/5 hover:border-[#00B4D8]/30">
+                <i class="fa-solid fa-brain text-3xl text-[#00B4D8]"></i>
+                <span class="font-semibold" data-i18n="modules.m3">AI Agent Mesh</span>
+            </div>
+            <div class="p-6 rounded-3xl bg-white/5 hover:bg-white/10 transition-all flex items-center gap-4 border border-white/5 hover:border-[#00B4D8]/30">
+                <i class="fa-solid fa-building text-3xl text-[#00B4D8]"></i>
+                <span class="font-semibold" data-i18n="modules.m4">Smart Buildings</span>
+            </div>
+            <div class="p-6 rounded-3xl bg-white/5 hover:bg-white/10 transition-all flex items-center gap-4 border border-white/5 hover:border-[#00B4D8]/30">
+                <i class="fa-solid fa-car text-3xl text-[#00B4D8]"></i>
+                <span class="font-semibold" data-i18n="modules.m5">Mobility &amp; Traffic</span>
+            </div>
+            <div class="p-6 rounded-3xl bg-white/5 hover:bg-white/10 transition-all flex items-center gap-4 border border-white/5 hover:border-[#00B4D8]/30">
+                <i class="fa-solid fa-shield text-3xl text-[#00B4D8]"></i>
+                <span class="font-semibold" data-i18n="modules.m6">Security &amp; Safety</span>
+            </div>
+            <div class="p-6 rounded-3xl bg-white/5 hover:bg-white/10 transition-all flex items-center gap-4 border border-white/5 hover:border-[#00B4D8]/30">
+                <i class="fa-solid fa-leaf text-3xl text-[#00B4D8]"></i>
+                <span class="font-semibold" data-i18n="modules.m7">Energy &amp; Environment</span>
+            </div>
+            <div class="p-6 rounded-3xl bg-white/5 hover:bg-white/10 transition-all flex items-center gap-4 border border-white/5 hover:border-[#00B4D8]/30">
+                <i class="fa-solid fa-users text-3xl text-[#00B4D8]"></i>
+                <span class="font-semibold" data-i18n="modules.m8">Citizen Engagement</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section class="py-24 bg-[#0F2339]">
+    <div class="max-w-screen-2xl mx-auto px-6 lg:px-8">
+        <h2 class="section-title heading-font text-5xl font-semibold text-center mb-16" data-i18n="arch.title">Platform Architecture</h2>
+        <div class="max-w-4xl mx-auto bg-[#1A314F] rounded-3xl p-8 lg:p-12 text-center border border-white/5">
+            <div class="space-y-8 text-lg">
+                <div class="flex flex-col md:flex-row gap-6 items-center justify-center">
+                    <div class="bg-[#0A1A2F] px-6 py-5 rounded-2xl flex-1 border border-white/5">
+                        <span data-i18n="arch.dataSrc">Data Sources</span><br>
+                        <span class="text-sm text-gray-400" data-i18n="arch.dataTags">IoT • CCTV • GIS • BIM • ERP • Drones</span>
+                    </div>
+                    <div class="text-4xl text-[#00B4D8]">↓</div>
+                </div>
+                <div class="bg-gradient-to-r from-[#0077B6] to-[#00B4D8] text-[#0A1A2F] font-bold text-2xl py-6 rounded-3xl shadow-lg shadow-[#0077B6]/30" data-i18n="arch.fabric">
+                    SaDaS Intelligence Fabric
+                </div>
+                <div class="flex flex-col md:flex-row gap-6 items-center justify-center">
+                    <div class="text-4xl text-[#00B4D8]">↓</div>
+                    <div class="bg-[#0A1A2F] px-6 py-5 rounded-2xl flex-1 border border-white/5" data-i18n="arch.middle">AI • Digital Twin • Spatial Analytics • Automation</div>
+                </div>
+                <div class="flex flex-col md:flex-row gap-6 items-center justify-center">
+                    <div class="text-4xl text-[#00B4D8]">↓</div>
+                    <div class="bg-[#0A1A2F] px-6 py-5 rounded-2xl flex-1 border border-white/5" data-i18n="arch.bottom">Dashboards • Command Center • Mobile Apps • APIs</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- BENEFITS -->
+<section id="benefits" class="py-24">
+    <div class="max-w-screen-2xl mx-auto px-6 lg:px-8">
+        <h2 class="section-title heading-font text-5xl font-semibold text-center mb-16" data-i18n="benefits.title">Key Benefits</h2>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="flex gap-5 bg-white/5 p-6 rounded-3xl border border-white/5 hover:border-[#00B4D8]/30 transition-all">
+                <span class="text-4xl text-emerald-400">✅</span>
+                <div>
+                    <div class="font-semibold text-xl" data-i18n="benefits.b1.title">Real-time</div>
+                    <div class="text-gray-400" data-i18n="benefits.b1.desc">Full operational awareness in real time</div>
+                </div>
+            </div>
+            <div class="flex gap-5 bg-white/5 p-6 rounded-3xl border border-white/5 hover:border-[#00B4D8]/30 transition-all">
+                <span class="text-4xl text-emerald-400">✅</span>
+                <div>
+                    <div class="font-semibold text-xl" data-i18n="benefits.b2.title">Cost reduction</div>
+                    <div class="text-gray-400" data-i18n="benefits.b2.desc">Optimization of infrastructure and resources</div>
+                </div>
+            </div>
+            <div class="flex gap-5 bg-white/5 p-6 rounded-3xl border border-white/5 hover:border-[#00B4D8]/30 transition-all">
+                <span class="text-4xl text-emerald-400">✅</span>
+                <div>
+                    <div class="font-semibold text-xl" data-i18n="benefits.b3.title">Predictive</div>
+                    <div class="text-gray-400" data-i18n="benefits.b3.desc">Predictive maintenance and incident prevention</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- USE CASES -->
+<section id="use-cases" class="py-24 bg-[#0F2339]">
+    <div class="max-w-screen-2xl mx-auto px-6 lg:px-8">
+        <h2 class="section-title heading-font text-5xl font-semibold text-center mb-16" data-i18n="usecases.title">Use Cases</h2>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="bg-[#1A314F] p-6 rounded-3xl text-center border border-white/5 hover:border-[#0077B6]/40 transition-all">
+                <div class="text-5xl mb-4">🏙️</div>
+                <div class="font-semibold" data-i18n="usecases.uc1">Residential districts</div>
+                <div class="text-sm text-gray-400 mt-2" data-i18n="usecases.uc1d">Comfort, safety, energy efficiency</div>
+            </div>
+            <div class="bg-[#1A314F] p-6 rounded-3xl text-center border border-white/5 hover:border-[#0077B6]/40 transition-all">
+                <div class="text-5xl mb-4">🏢</div>
+                <div class="font-semibold" data-i18n="usecases.uc2">Business parks</div>
+                <div class="text-sm text-gray-400 mt-2" data-i18n="usecases.uc2d">Smart offices, logistics, parking</div>
+            </div>
+            <div class="bg-[#1A314F] p-6 rounded-3xl text-center border border-white/5 hover:border-[#0077B6]/40 transition-all">
+                <div class="text-5xl mb-4">🏭</div>
+                <div class="font-semibold" data-i18n="usecases.uc3">Industrial zones</div>
+                <div class="text-sm text-gray-400 mt-2" data-i18n="usecases.uc3d">Monitoring, safety, optimization</div>
+            </div>
+            <div class="bg-[#1A314F] p-6 rounded-3xl text-center border border-white/5 hover:border-[#0077B6]/40 transition-all">
+                <div class="text-5xl mb-4">🌳</div>
+                <div class="font-semibold" data-i18n="usecases.uc4">Eco-clusters</div>
+                <div class="text-sm text-gray-400 mt-2" data-i18n="usecases.uc4d">Sustainable development, green tech</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA / DEMO FORM -->
+<section id="demo-form" class="py-28 bg-gradient-to-br from-[#0077B6] to-[#00B4D8]">
+    <div class="max-w-2xl mx-auto text-center px-6 lg:px-8">
+        <h2 class="heading-font text-5xl font-bold mb-6" data-i18n="cta.title">Ready to transform your district?</h2>
+        <p class="text-xl mb-10 text-white/90" data-i18n="cta.sub">Contact us and get a personal demonstration of SaDaS® Cairo</p>
+        <form class="space-y-6" onsubmit="event.preventDefault(); alert('Demo request sent! We will contact you.');">
+            <div class="grid sm:grid-cols-2 gap-5">
+                <input type="text" placeholder="Your name" data-i18n-placeholder="cta.name" class="bg-white/10 border border-white/30 rounded-2xl px-6 py-4 focus:outline-none focus:border-white text-white placeholder:text-white/70" />
+                <input type="email" placeholder="Email" data-i18n-placeholder="cta.email" class="bg-white/10 border border-white/30 rounded-2xl px-6 py-4 focus:outline-none focus:border-white text-white placeholder:text-white/70" />
+            </div>
+            <input type="text" placeholder="Organization / City" data-i18n-placeholder="cta.org" class="w-full bg-white/10 border border-white/30 rounded-2xl px-6 py-4 focus:outline-none focus:border-white text-white placeholder:text-white/70" />
+            <button type="submit" class="w-full py-6 bg-white text-[#0A1A2F] font-bold text-xl rounded-3xl hover:scale-[1.02] transition-all shadow-2xl shadow-black/20" data-i18n="cta.btn">
+                Request live demo
+            </button>
+        </form>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="bg-black/60 py-16 border-t border-white/5">
+    <div class="max-w-screen-2xl mx-auto px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row justify-between items-start gap-12">
+            <div>
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-9 h-9 bg-gradient-to-br from-[#0077B6] to-[#00B4D8] rounded-2xl flex items-center justify-center text-2xl font-bold">S</div>
+                    <span class="heading-font text-3xl font-semibold">SaDaS® Cairo</span>
+                </div>
+                <p class="text-gray-400" data-i18n="footer.tagline">Smart District as a Service</p>
+                <p class="text-xs text-gray-500 mt-6">Powered by ECAUDIP</p>
+            </div>
+            <div class="grid grid-cols-3 gap-12">
+                <div>
+                    <div class="font-medium mb-4" data-i18n="footer.platform">Platform</div>
+                    <div class="space-y-2 text-sm text-gray-400">
+                        <div data-i18n="footer.p1">Digital Twin</div>
+                        <div data-i18n="footer.p2">AI Engine</div>
+                        <div data-i18n="footer.p3">GIS</div>
+                    </div>
+                </div>
+                <div>
+                    <div class="font-medium mb-4" data-i18n="footer.solutions">Solutions</div>
+                    <div class="space-y-2 text-sm text-gray-400">
+                        <div data-i18n="footer.s1">Residential</div>
+                        <div data-i18n="footer.s2">Business parks</div>
+                        <div data-i18n="footer.s3">Industrial zones</div>
+                    </div>
+                </div>
+                <div>
+                    <div class="font-medium mb-4" data-i18n="footer.company">Company</div>
+                    <div class="space-y-2 text-sm text-gray-400">
+                        <div data-i18n="footer.c1">About</div>
+                        <div data-i18n="footer.c2">Contacts</div>
+                        <div data-i18n="footer.c3">Careers</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="text-center text-xs text-gray-500 mt-20 border-t border-white/5 pt-8">
+            © 2026 SaDaS® Cairo. All rights reserved.
+        </div>
+    </div>
+</footer>
+
+<!-- ============================================================ -->
+<!-- THREE.JS FOR CINEMATIC (injected into #cinematicContainer) -->
+<script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.126.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.126.0/examples/jsm/"
+        }
+    }
+</script>
+
+<script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    // ─── DOM REFS ───
+    const container = document.getElementById('cinematicContainer');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+
+    // ─── SETUP ───
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    container.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x050508);
+    scene.fog = new THREE.FogExp2(0x050508, 0.0008);
+
+    const camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.1, 100);
+    camera.position.set(18, 12, 22);
+
+    // ─── CONTROLS ───
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.minDistance = 1.5;
+    controls.maxDistance = 50;
+    controls.maxPolarAngle = Math.PI / 2.05;
+    controls.minPolarAngle = 0.02;
+    controls.target.set(0, 0.5, 0);
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.6;
+    controls.enableZoom = true;
+    controls.enablePan = true;
+    controls.update();
+
+    renderer.domElement.addEventListener('mousedown', () => { controls.autoRotate = false; });
+    renderer.domElement.addEventListener('mouseup', () => {
+        setTimeout(() => {
+            if (!controls.autoRotate) controls.autoRotate = true;
+        }, 8000);
+    });
+    renderer.domElement.addEventListener('touchstart', () => { controls.autoRotate = false; });
+    renderer.domElement.addEventListener('touchend', () => {
+        setTimeout(() => {
+            if (!controls.autoRotate) controls.autoRotate = true;
+        }, 8000);
+    });
+
+    // ─── LIGHTS ───
+    const ambientLight = new THREE.AmbientLight(0x1a2a44, 0.4);
+    scene.add(ambientLight);
+    const sunLight = new THREE.DirectionalLight(0xffeedd, 1.2);
+    sunLight.position.set(10, 18, 8);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 2048;
+    sunLight.shadow.mapSize.height = 2048;
+    sunLight.shadow.camera.near = 0.1;
+    sunLight.shadow.camera.far = 50;
+    sunLight.shadow.camera.left = -25;
+    sunLight.shadow.camera.right = 25;
+    sunLight.shadow.camera.top = 25;
+    sunLight.shadow.camera.bottom = -25;
+    scene.add(sunLight);
+    const fillLight = new THREE.DirectionalLight(0x4488ff, 0.3);
+    fillLight.position.set(-10, 6, -8);
+    scene.add(fillLight);
+    const rimLight = new THREE.DirectionalLight(0x00aaff, 0.5);
+    rimLight.position.set(-4, 2, -14);
+    scene.add(rimLight);
+    const hemiLight = new THREE.HemisphereLight(0x88ccff, 0x001122, 0.35);
+    scene.add(hemiLight);
+
+    // ─── GROUND ───
+    const groundGeo = new THREE.PlaneGeometry(50, 50);
+    const groundMat = new THREE.MeshStandardMaterial({
+        color: 0x08080f,
+        roughness: 0.95,
+        metalness: 0.05,
+        transparent: true,
+        opacity: 0.9
+    });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -0.6;
+    ground.receiveShadow = true;
+    scene.add(ground);
+    const grid1 = new THREE.GridHelper(44, 44, 0x00d4ff, 0x003366);
+    grid1.position.y = -0.55;
+    grid1.material.transparent = true;
+    grid1.material.opacity = 0.15;
+    scene.add(grid1);
+    const grid2 = new THREE.GridHelper(44, 88, 0x0088ff, 0x001a33);
+    grid2.position.y = -0.5;
+    grid2.material.transparent = true;
+    grid2.material.opacity = 0.04;
+    scene.add(grid2);
+
+    // ─── BUILDINGS ───
+    const buildingGroup = new THREE.Group();
+    scene.add(buildingGroup);
+    const allBuildings = [];
+    const buildingPositions = [];
+
+    function createBuildingWithWindows(x, z, w, h, d, zone, colorVariant = 0) {
+        const group = new THREE.Group();
+        const geo = new THREE.BoxGeometry(w, h, d);
+        const mat = new THREE.MeshStandardMaterial({
+            color: new THREE.Color().setHSL(0.58 + colorVariant * 0.04, 0.4, 0.1 + colorVariant * 0.08),
+            roughness: 0.5,
+            metalness: 0.7,
+            transparent: true,
+            opacity: 0.92
+        });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.position.set(0, 0, 0);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        mesh.userData = {
+            zone: zone,
+            isBuilding: true,
+            data: generateZoneData(zone),
+            height: h,
+            x: x,
+            z: z
+        };
+        group.add(mesh);
+
+        const windowMat = new THREE.MeshStandardMaterial({
+            color: 0x88ccff,
+            emissive: new THREE.Color().setHSL(0.58, 0.8, 0.2 + Math.random() * 0.1),
+            emissiveIntensity: 0.3 + Math.random() * 0.3,
+            transparent: true,
+            opacity: 0.6
+        });
+        const windowRows = Math.max(2, Math.floor(h * 2.5));
+        const windowCols = Math.max(2, Math.floor(Math.min(w, d) * 3));
+        if (h > 1.0 && windowRows > 2) {
+            for (let row = 0; row < windowRows; row++) {
+                for (let col = 0; col < windowCols; col++) {
+                    const wx = -w/2 + (col + 0.5) * (w / windowCols);
+                    const wy = -h/2 + (row + 0.5) * (h / windowRows);
+                    const winGeo = new THREE.PlaneGeometry(w * 0.12, h * 0.08);
+                    const win = new THREE.Mesh(winGeo, windowMat.clone());
+                    win.position.set(wx, wy, d/2 + 0.01);
+                    group.add(win);
+                    const win2 = win.clone();
+                    win2.position.set(wx, wy, -d/2 - 0.01);
+                    win2.rotation.y = Math.PI;
+                    group.add(win2);
+                }
+            }
+            for (let row = 0; row < windowRows; row++) {
+                for (let col = 0; col < Math.floor(windowCols * 0.7); col++) {
+                    const wz = -d/2 + (col + 0.5) * (d / Math.floor(windowCols * 0.7));
+                    const wy = -h/2 + (row + 0.5) * (h / windowRows);
+                    const winGeo = new THREE.PlaneGeometry(d * 0.1, h * 0.08);
+                    const win = new THREE.Mesh(winGeo, windowMat.clone());
+                    win.position.set(w/2 + 0.01, wy, wz);
+                    win.rotation.y = Math.PI / 2;
+                    group.add(win);
+                    const win2 = win.clone();
+                    win2.position.set(-w/2 - 0.01, wy, wz);
+                    win2.rotation.y = -Math.PI / 2;
+                    group.add(win2);
+                }
+            }
+        }
+        const edges = new THREE.EdgesGeometry(geo);
+        const lineMat = new THREE.LineBasicMaterial({
+            color: new THREE.Color().setHSL(0.58, 1, 0.3 + colorVariant * 0.15),
+            transparent: true,
+            opacity: 0.08 + Math.random() * 0.08
+        });
+        const wireframe = new THREE.LineSegments(edges, lineMat);
+        group.add(wireframe);
+
+        group.position.set(x, h/2 - 0.6, z);
+        allBuildings.push(mesh);
+        buildingPositions.push({ x, z, h, mesh });
+        return group;
+    }
+
+    function generateZoneData(zone) {
+        const data = {
+            'MOBILITY': { status: 'Online', throughput: `${(70 + Math.random() * 25).toFixed(1)}%`, active: Math.floor(800 + Math.random() * 900).toLocaleString(), efficiency: `${(85 + Math.random() * 12).toFixed(0)}%` },
+            'ENERGY': { status: 'Balanced', throughput: `${(60 + Math.random() * 35).toFixed(1)}%`, active: `${Math.floor(12 + Math.random() * 20)} MW`, efficiency: `${(78 + Math.random() * 18).toFixed(0)}%` },
+            'WATER': { status: 'Stable', throughput: `${(65 + Math.random() * 30).toFixed(1)}%`, active: `${Math.floor(200 + Math.random() * 400)} L/s`, efficiency: `${(82 + Math.random() * 15).toFixed(0)}%` },
+            'SAFETY': { status: 'Secure', throughput: `${(75 + Math.random() * 20).toFixed(1)}%`, active: `${Math.floor(40 + Math.random() * 60)} units`, efficiency: `${(88 + Math.random() * 10).toFixed(0)}%` },
+            'ENVIRONMENT': { status: 'Green', throughput: `${(55 + Math.random() * 30).toFixed(1)}%`, active: `AQI ${Math.floor(20 + Math.random() * 30)}`, efficiency: `${(70 + Math.random() * 25).toFixed(0)}%` },
+            'IoT NETWORK': { status: 'Connected', throughput: `${(80 + Math.random() * 18).toFixed(1)}%`, active: `${Math.floor(3000 + Math.random() * 5000).toLocaleString()} nodes`, efficiency: `${(90 + Math.random() * 8).toFixed(0)}%` },
+            'SPACEPORT': { status: 'Active', throughput: `${(60 + Math.random() * 30).toFixed(1)}%`, active: `${Math.floor(5 + Math.random() * 15)} flights/hr`, efficiency: `${(75 + Math.random() * 20).toFixed(0)}%` },
+            'RESIDENTIAL': { status: 'Occupied', throughput: `${(70 + Math.random() * 25).toFixed(1)}%`, active: `${Math.floor(2000 + Math.random() * 3000).toLocaleString()} residents`, efficiency: `${(80 + Math.random() * 15).toFixed(0)}%` },
+            'PRODUCTION': { status: 'Operating', throughput: `${(65 + Math.random() * 30).toFixed(1)}%`, active: `${Math.floor(100 + Math.random() * 200)} units/hr`, efficiency: `${(82 + Math.random() * 14).toFixed(0)}%` },
+            'RECREATION': { status: 'Open', throughput: `${(50 + Math.random() * 35).toFixed(1)}%`, active: `${Math.floor(300 + Math.random() * 700)} visitors`, efficiency: `${(70 + Math.random() * 25).toFixed(0)}%` }
+        };
+        return data[zone] || data['MOBILITY'];
+    }
+
+    const zoneNames = ['MOBILITY', 'ENERGY', 'WATER', 'SAFETY', 'ENVIRONMENT', 'IoT NETWORK', 
+                      'SPACEPORT', 'RESIDENTIAL', 'PRODUCTION', 'RECREATION'];
+
+    for (let i = 0; i < 250; i++) {
+        const x = (Math.random() - 0.5) * 34;
+        const z = (Math.random() - 0.5) * 34;
+        if (Math.abs(x) < 5 && Math.abs(z) < 5) continue;
+        const w = 0.2 + Math.random() * 1.0;
+        const d = 0.2 + Math.random() * 1.0;
+        let h = 0.4 + Math.random() * 5.0;
+        const distFromCenter = Math.sqrt(x*x + z*z);
+        if (distFromCenter < 12) h = 1.0 + Math.random() * 5.5;
+        let zoneIndex;
+        const angle = Math.atan2(z, x);
+        if (distFromCenter < 8) {
+            zoneIndex = Math.floor(Math.random() * 6);
+        } else if (angle > -0.5 && angle < 0.5) {
+            zoneIndex = 6;
+        } else if (angle > 1.5 && angle < 2.5) {
+            zoneIndex = 8;
+        } else if (angle > -2.5 && angle < -1.5) {
+            zoneIndex = 7;
+        } else if (Math.abs(angle) > 2.5 || Math.abs(angle) < 0.2) {
+            zoneIndex = 9;
+        } else {
+            zoneIndex = Math.floor(Math.random() * 6);
+        }
+        const zone = zoneNames[zoneIndex % zoneNames.length];
+        const colorVariant = Math.random();
+        const building = createBuildingWithWindows(x, z, w, h, d, zone, colorVariant);
+        buildingGroup.add(building);
+    }
+
+    // Spaceport
+    function createSpaceport() {
+        const group = new THREE.Group();
+        group.position.set(14, 0.2, 0);
+        const domeGeo = new THREE.SphereGeometry(1.8, 32, 32);
+        const domeMat = new THREE.MeshStandardMaterial({
+            color: 0x4488aa, roughness: 0.3, metalness: 0.8, transparent: true, opacity: 0.7,
+            emissive: 0x004488, emissiveIntensity: 0.2
+        });
+        const dome = new THREE.Mesh(domeGeo, domeMat);
+        dome.position.y = 1.8;
+        dome.castShadow = true;
+        dome.receiveShadow = true;
+        dome.userData = { zone: 'SPACEPORT', isBuilding: true, data: generateZoneData('SPACEPORT'), height: 3.6 };
+        group.add(dome);
+        const ringGeo = new THREE.TorusGeometry(2.2, 0.08, 16, 64);
+        const ringMat = new THREE.MeshStandardMaterial({ color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 0.3, transparent: true, opacity: 0.6 });
+        const ring = new THREE.Mesh(ringGeo, ringMat);
+        ring.position.y = 1.8;
+        ring.rotation.x = Math.PI / 3;
+        ring.rotation.z = Math.PI / 4;
+        group.add(ring);
+        const ring2 = ring.clone();
+        ring2.rotation.x = -Math.PI / 4;
+        ring2.rotation.z = Math.PI / 3;
+        group.add(ring2);
+        const padGeo = new THREE.CylinderGeometry(2.5, 2.5, 0.2, 32);
+        const padMat = new THREE.MeshStandardMaterial({ color: 0x1a2a3a, roughness: 0.8, metalness: 0.2, transparent: true, opacity: 0.8 });
+        const pad = new THREE.Mesh(padGeo, padMat);
+        pad.position.y = 0.1;
+        pad.receiveShadow = true;
+        group.add(pad);
+        const glowGeo = new THREE.RingGeometry(1.8, 2.2, 32);
+        const glowMat = new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.2, side: THREE.DoubleSide });
+        const glow = new THREE.Mesh(glowGeo, glowMat);
+        glow.rotation.x = -Math.PI / 2;
+        glow.position.y = 0.2;
+        group.add(glow);
+        allBuildings.push(dome);
+        return group;
+    }
+    scene.add(createSpaceport());
+
+    // Residential zone
+    function createResidentialZone() {
+        const group = new THREE.Group();
+        group.position.set(-8, 0, -10);
+        for (let i = 0; i < 30; i++) {
+            const x = (Math.random() - 0.5) * 10;
+            const z = (Math.random() - 0.5) * 10;
+            if (Math.abs(x) < 2 && Math.abs(z) < 2) continue;
+            const w = 0.6 + Math.random() * 0.6;
+            const d = 0.6 + Math.random() * 0.6;
+            const h = 0.8 + Math.random() * 1.5;
+            const building = createBuildingWithWindows(x, z, w, h, d, 'RESIDENTIAL', 0.05);
+            building.children.forEach(child => {
+                if (child.isMesh && child.material && child.material.color) {
+                    child.material.color.setHSL(0.08, 0.3, 0.15 + Math.random() * 0.1);
+                    child.material.emissive.setHSL(0.08, 0.5, 0.02);
+                }
+            });
+            group.add(building);
+        }
+        return group;
+    }
+    scene.add(createResidentialZone());
+
+    // Production zone
+    function createProductionZone() {
+        const group = new THREE.Group();
+        group.position.set(5, 0, 12);
+        for (let i = 0; i < 20; i++) {
+            const x = (Math.random() - 0.5) * 10;
+            const z = (Math.random() - 0.5) * 10;
+            const w = 1.0 + Math.random() * 1.5;
+            const d = 1.0 + Math.random() * 1.5;
+            const h = 1.5 + Math.random() * 2.0;
+            const building = createBuildingWithWindows(x, z, w, h, d, 'PRODUCTION', 0.12);
+            building.children.forEach(child => {
+                if (child.isMesh && child.material && child.material.color) {
+                    child.material.color.setHSL(0.10, 0.1, 0.2 + Math.random() * 0.1);
+                    child.material.metalness = 0.9;
+                    child.material.roughness = 0.3;
+                }
+            });
+            group.add(building);
+        }
+        return group;
+    }
+    scene.add(createProductionZone());
+
+    // Recreation zone
+    function createRecreationZone() {
+        const group = new THREE.Group();
+        group.position.set(-12, 0, 8);
+        const parkGeo = new THREE.CircleGeometry(5, 32);
+        const parkMat = new THREE.MeshStandardMaterial({ color: 0x1a3a1a, roughness: 0.9, metalness: 0.0, transparent: true, opacity: 0.7 });
+        const park = new THREE.Mesh(parkGeo, parkMat);
+        park.rotation.x = -Math.PI / 2;
+        park.position.y = -0.55;
+        park.receiveShadow = true;
+        group.add(park);
+        for (let i = 0; i < 25; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const radius = 1 + Math.random() * 3.5;
+            const tx = Math.cos(angle) * radius;
+            const tz = Math.sin(angle) * radius;
+            const trunkGeo = new THREE.CylinderGeometry(0.05, 0.08, 0.4);
+            const trunkMat = new THREE.MeshStandardMaterial({ color: 0x4a3520 });
+            const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+            trunk.position.set(tx, 0, tz);
+            group.add(trunk);
+            const canopyGeo = new THREE.SphereGeometry(0.2 + Math.random() * 0.25, 6);
+            const canopyMat = new THREE.MeshStandardMaterial({ color: new THREE.Color().setHSL(0.3, 0.6, 0.2 + Math.random() * 0.15), roughness: 0.9, metalness: 0.0 });
+            const canopy = new THREE.Mesh(canopyGeo, canopyMat);
+            canopy.position.set(tx, 0.5 + Math.random() * 0.2, tz);
+            canopy.castShadow = true;
+            group.add(canopy);
+        }
+        const waterGeo = new THREE.CircleGeometry(2, 32);
+        const waterMat = new THREE.MeshStandardMaterial({ color: 0x003366, roughness: 0.1, metalness: 0.8, transparent: true, opacity: 0.6, emissive: 0x001133, emissiveIntensity: 0.05 });
+        const water = new THREE.Mesh(waterGeo, waterMat);
+        water.rotation.x = -Math.PI / 2;
+        water.position.set(0, -0.55, 0);
+        group.add(water);
+        for (let i = 0; i < 5; i++) {
+            const x = (Math.random() - 0.5) * 8;
+            const z = (Math.random() - 0.5) * 8;
+            if (Math.abs(x) < 3 && Math.abs(z) < 3) continue;
+            const w = 0.8 + Math.random() * 0.6;
+            const d = 0.8 + Math.random() * 0.6;
+            const h = 0.6 + Math.random() * 0.8;
+            const building = createBuildingWithWindows(x, z, w, h, d, 'RECREATION', 0.40);
+            building.children.forEach(child => {
+                if (child.isMesh && child.material && child.material.color) {
+                    child.material.color.setHSL(0.4, 0.3, 0.15 + Math.random() * 0.08);
+                }
+            });
+            group.add(building);
+        }
+        return group;
+    }
+    scene.add(createRecreationZone());
+
+    // ─── PULSE LINES ───
+    const pulseGroup = new THREE.Group();
+    scene.add(pulseGroup);
+    function createPulseLine(x1, z1, x2, z2) {
+        const pts = [new THREE.Vector3(x1, 0.05, z1), new THREE.Vector3(x2, 0.05, z2)];
+        const geo = new THREE.BufferGeometry().setFromPoints(pts);
+        const mat = new THREE.LineBasicMaterial({ color: 0x0066ff, transparent: true, opacity: 0.03 + Math.random() * 0.06 });
+        return new THREE.Line(geo, mat);
+    }
+    for (let i = 0; i < buildingPositions.length; i++) {
+        for (let j = i + 1; j < buildingPositions.length; j++) {
+            const a = buildingPositions[i];
+            const b = buildingPositions[j];
+            const dist = Math.sqrt((a.x - b.x) ** 2 + (a.z - b.z) ** 2);
+            if (dist < 3.5 && dist > 0.5 && Math.random() < 0.08) {
+                pulseGroup.add(createPulseLine(a.x, a.z, b.x, b.z));
+            }
+        }
+    }
+
+    // ─── LABELS ───
+    const labelGroup = new THREE.Group();
+    scene.add(labelGroup);
+    function createLabel(text, x, z, color = '#00d4ff') {
+        const c = document.createElement('canvas');
+        c.width = 256;
+        c.height = 64;
+        const ctx = c.getContext('2d');
+        ctx.clearRect(0, 0, 256, 64);
+        ctx.font = 'Bold 22px "Orbitron", monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.shadowColor = 'rgba(0,212,255,0.2)';
+        ctx.shadowBlur = 20;
+        ctx.fillStyle = color;
+        ctx.fillText(text, 128, 32);
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+        ctx.lineWidth = 2;
+        ctx.strokeText(text, 128, 32);
+        const tex = new THREE.CanvasTexture(c);
+        const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, opacity: 0.45 });
+        const sprite = new THREE.Sprite(mat);
+        sprite.position.set(x, 2.6 + Math.random() * 0.6, z);
+        sprite.scale.set(2.8, 0.7, 1);
+        sprite.userData = { isLabel: true, zone: text };
+        return sprite;
+    }
+    const labelConfigs = [
+        { text: 'MOBILITY', x: -6, z: -5 },
+        { text: 'ENERGY', x: 7, z: -6 },
+        { text: 'WATER', x: -7, z: 6 },
+        { text: 'SAFETY', x: 6, z: 5 },
+        { text: 'ENVIRONMENT', x: -8, z: -7 },
+        { text: 'IoT NETWORK', x: 8, z: 7 },
+        { text: '🛸 SPACEPORT', x: 14, z: 0 },
+        { text: '🏘 RESIDENTIAL', x: -8, z: -10 },
+        { text: '🏭 PRODUCTION', x: 5, z: 12 },
+        { text: '🌳 RECREATION', x: -12, z: 8 }
+    ];
+    labelConfigs.forEach(l => {
+        labelGroup.add(createLabel(l.text, l.x, l.z, l.text.includes('🛸') ? '#ff6b35' : '#00d4ff'));
+    });
+
+    // ─── RING PARTICLES ───
+    const ringParticles = new THREE.BufferGeometry();
+    const count = 1000;
+    const pos = new Float32Array(count * 3);
+    const col = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+        const theta = (i / count) * Math.PI * 2;
+        const radius = 5 + Math.sin(i * 0.5) * 0.5;
+        pos[i * 3] = Math.cos(theta) * radius;
+        pos[i * 3 + 1] = Math.sin(theta * 2) * 0.6 + 0.6;
+        pos[i * 3 + 2] = Math.sin(theta) * radius;
+        col[i * 3] = 0.0;
+        col[i * 3 + 1] = 0.5 + Math.sin(theta * 4) * 0.3;
+        col[i * 3 + 2] = 1.0;
+    }
+    ringParticles.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    ringParticles.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    const particleMat = new THREE.PointsMaterial({ size: 0.07, vertexColors: true, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending });
+    const particleRing = new THREE.Points(ringParticles, particleMat);
+    scene.add(particleRing);
+
+    // ─── DRONE ───
+    const droneGroup = new THREE.Group();
+    scene.add(droneGroup);
+    const droneBody = new THREE.Mesh(
+        new THREE.BoxGeometry(0.3, 0.08, 0.6),
+        new THREE.MeshStandardMaterial({ color: 0x00aaff, emissive: 0x004466, metalness: 0.8, roughness: 0.2 })
+    );
+    droneGroup.add(droneBody);
+    const dLight1 = new THREE.Mesh(new THREE.SphereGeometry(0.05), new THREE.MeshBasicMaterial({ color: 0xff6b35 }));
+    dLight1.position.set(0.25, 0.06, 0);
+    droneGroup.add(dLight1);
+    const dLight2 = new THREE.Mesh(new THREE.SphereGeometry(0.04), new THREE.MeshBasicMaterial({ color: 0x00d4ff }));
+    dLight2.position.set(-0.25, 0.06, 0);
+    droneGroup.add(dLight2);
+
+    // ─── GLOBAL LINKS ───
+    const globalGroup = new THREE.Group();
+    scene.add(globalGroup);
+    for (let i = 0; i < 60; i++) {
+        const angle = (i / 60) * Math.PI * 2;
+        const r = 8 + Math.random() * 6;
+        const x = Math.cos(angle) * r;
+        const z = Math.sin(angle) * r;
+        const y = 0.3 + Math.random() * 4;
+        const pts = [new THREE.Vector3(0, y, 0), new THREE.Vector3(x, y + Math.sin(i * 0.7) * 0.8, z)];
+        const geo = new THREE.BufferGeometry().setFromPoints(pts);
+        const mat = new THREE.LineBasicMaterial({ color: 0x4488ff, transparent: true, opacity: 0.025 });
+        globalGroup.add(new THREE.Line(geo, mat));
+    }
+
+    // ─── RESIZE ───
+    function resize() {
+        const w = container.clientWidth;
+        const h = container.clientHeight;
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+    }
+    window.addEventListener('resize', resize);
+    setTimeout(resize, 100);
+
+    // ─── FULLSCREEN TOGGLE ───
+    fullscreenBtn.addEventListener('click', () => {
+        container.classList.toggle('fullscreen');
+        const icon = fullscreenBtn.querySelector('i');
+        if (container.classList.contains('fullscreen')) {
+            icon.className = 'fa-solid fa-compress';
+        } else {
+            icon.className = 'fa-solid fa-expand';
+        }
+        setTimeout(resize, 200);
+    });
+
+    // also allow ESC to exit fullscreen
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && container.classList.contains('fullscreen')) {
+            container.classList.remove('fullscreen');
+            const icon = fullscreenBtn.querySelector('i');
+            icon.className = 'fa-solid fa-expand';
+            setTimeout(resize, 200);
+        }
+    });
+
+    // ─── ANIMATION ───
+    const clock = new THREE.Clock();
+
+    function animate() {
+        const delta = clock.getDelta();
+        const time = clock.getElapsedTime();
+
+        particleRing.rotation.y += delta * 0.08;
+
+        droneGroup.position.x = Math.sin(time * 0.25) * 6;
+        droneGroup.position.z = Math.cos(time * 0.25) * 6;
+        droneGroup.position.y = 0.8 + Math.sin(time * 0.35) * 0.3;
+        droneGroup.rotation.y = time * 0.25;
+
+        pulseGroup.children.forEach((line, idx) => {
+            if (line.isLine) {
+                line.material.opacity = 0.03 + Math.sin(time * 1.8 + idx * 0.4) * 0.035;
+            }
+        });
+
+        allBuildings.forEach((mesh, idx) => {
+            const pulse = 0.01 + Math.sin(time * 1.0 + idx * 0.06) * 0.015;
+            mesh.material.emissiveIntensity = pulse + 0.01;
+        });
+
+        globalGroup.rotation.y += delta * 0.01;
+
+        controls.update();
+        renderer.render(scene, camera);
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    console.log('🎬 SaDaS® Cinematic embedded in landing page');
+    console.log('🖱 Click fullscreen button for immersive view');
+</script>
+
+<!-- i18n + interactions -->
+<script>
+    (function() {
+        // ---------- TRANSLATIONS ----------
+        const translations = {
+            en: {
+                nav: { platform: "Platform", modules: "Modules", benefits: "Benefits", useCases: "Use Cases" },
+                header: { demo: "Request demo", start: "Start project" },
+                hero: {
+                    badge: "AI-native Urban OS",
+                    title1: "Build the", title2: "Autonomous", title3: "District of", title4: "Tomorrow",
+                    desc: "SaDaS® Cairo — AI-platform for digital transformation of urban districts. A unified system for monitoring, forecasting, and autonomous management of all city infrastructure.",
+                    demoBtn: "Request demo", videoBtn: "Watch video",
+                    trust: "Trusted by leaders", trustDetail: "Ministry of Housing • Cairo Governorate",
+                    statusLabel: "District status", statusValue: "Optimal",
+                    energy: "Energy", traffic: "Traffic", trafficVal: "Optimized", safety: "Safety", safetyVal: "High",
+                    scroll: "SCROLL"
+                },
+                platform: {
+                    title1: "One Platform.", title2: "Every Urban System.",
+                    sub: "Integrated solution for all aspects of modern urban district operations",
+                    card1: { title: "Digital Twin", desc: "Real-time 3D representation of the district with full data synchronization." },
+                    card2: { title: "GeoSpatial Intelligence", desc: "Interactive GIS system with spatial analysis and decision support." },
+                    card3: { title: "AI Decision Engine", desc: "Predictive analytics and autonomous optimization of all processes." }
+                },
+                modules: {
+                    title: "Core Platform Modules",
+                    m1: "Digital Twin Platform", m2: "GIS Intelligence Engine", m3: "AI Agent Mesh",
+                    m4: "Smart Buildings", m5: "Mobility & Traffic", m6: "Security & Safety",
+                    m7: "Energy & Environment", m8: "Citizen Engagement"
+                },
+                arch: {
+                    title: "Platform Architecture",
+                    dataSrc: "Data Sources", dataTags: "IoT • CCTV • GIS • BIM • ERP • Drones",
+                    fabric: "SaDaS Intelligence Fabric",
+                    middle: "AI • Digital Twin • Spatial Analytics • Automation",
+                    bottom: "Dashboards • Command Center • Mobile Apps • APIs"
+                },
+                benefits: {
+                    title: "Key Benefits",
+                    b1: { title: "Real-time", desc: "Full operational awareness in real time" },
+                    b2: { title: "Cost reduction", desc: "Optimization of infrastructure and resources" },
+                    b3: { title: "Predictive", desc: "Predictive maintenance and incident prevention" }
+                },
+                usecases: {
+                    title: "Use Cases",
+                    uc1: "Residential districts", uc1d: "Comfort, safety, energy efficiency",
+                    uc2: "Business parks", uc2d: "Smart offices, logistics, parking",
+                    uc3: "Industrial zones", uc3d: "Monitoring, safety, optimization",
+                    uc4: "Eco-clusters", uc4d: "Sustainable development, green tech"
+                },
+                cta: {
+                    title: "Ready to transform your district?",
+                    sub: "Contact us and get a personal demonstration of SaDaS® Cairo",
+                    name: "Your name", email: "Email", org: "Organization / City",
+                    btn: "Request live demo"
+                },
+                footer: {
+                    tagline: "Smart District as a Service",
+                    platform: "Platform", p1: "Digital Twin", p2: "AI Engine", p3: "GIS",
+                    solutions: "Solutions", s1: "Residential", s2: "Business parks", s3: "Industrial zones",
+                    company: "Company", c1: "About", c2: "Contacts", c3: "Careers"
+                }
+            },
+            ru: {
+                nav: { platform: "Платформа", modules: "Модули", benefits: "Преимущества", useCases: "Применение" },
+                header: { demo: "Запросить демо", start: "Начать проект" },
+                hero: {
+                    badge: "AI-native Urban OS",
+                    title1: "Постройте", title2: "Автономный", title3: "Район", title4: "Будущего",
+                    desc: "SaDaS® Cairo — AI-платформа для цифровой трансформации городских районов. Единая система для мониторинга, прогнозирования и автономного управления всей городской инфраструктурой.",
+                    demoBtn: "Запросить демо", videoBtn: "Посмотреть видео",
+                    trust: "Доверяют лидеры", trustDetail: "Министерство жилищного строительства • Cairo Governorate",
+                    statusLabel: "Статус района", statusValue: "Оптимально",
+                    energy: "Энергия", traffic: "Трафик", trafficVal: "Оптимизирован", safety: "Безопасность", safetyVal: "Высокая",
+                    scroll: "ПРОКРУТИТЬ"
+                },
+                platform: {
+                    title1: "Одна платформа.", title2: "Все городские системы.",
+                    sub: "Интегрированное решение для всех аспектов работы современного городского района",
+                    card1: { title: "Digital Twin", desc: "Реальное 3D-представление района в реальном времени с полной синхронизацией данных." },
+                    card2: { title: "GeoSpatial Intelligence", desc: "Интерактивная ГИС-система с пространственным анализом и поддержкой принятия решений." },
+                    card3: { title: "AI Decision Engine", desc: "Предиктивная аналитика и автономная оптимизация всех процессов." }
+                },
+                modules: {
+                    title: "Основные модули платформы",
+                    m1: "Digital Twin Platform", m2: "GIS Intelligence Engine", m3: "AI Agent Mesh",
+                    m4: "Smart Buildings", m5: "Mobility & Traffic", m6: "Security & Safety",
+                    m7: "Energy & Environment", m8: "Citizen Engagement"
+                },
+                arch: {
+                    title: "Архитектура платформы",
+                    dataSrc: "Источники данных", dataTags: "IoT • CCTV • GIS • BIM • ERP • Drones",
+                    fabric: "SaDaS Intelligence Fabric",
+                    middle: "AI • Digital Twin • Spatial Analytics • Automation",
+                    bottom: "Dashboards • Command Center • Mobile Apps • APIs"
+                },
+                benefits: {
+                    title: "Ключевые преимущества",
+                    b1: { title: "Реальное время", desc: "Полная операционная осведомленность в реальном времени" },
+                    b2: { title: "Снижение затрат", desc: "Оптимизация инфраструктуры и ресурсов" },
+                    b3: { title: "Прогнозирование", desc: "Предиктивное обслуживание и предотвращение инцидентов" }
+                },
+                usecases: {
+                    title: "Применение",
+                    uc1: "Жилые районы", uc1d: "Комфорт, безопасность, энергоэффективность",
+                    uc2: "Бизнес-парки", uc2d: "Умные офисы, логистика, парковки",
+                    uc3: "Промышленные зоны", uc3d: "Мониторинг, безопасность, оптимизация",
+                    uc4: "Эко-кластеры", uc4d: "Устойчивое развитие, зелёные технологии"
+                },
+                cta: {
+                    title: "Готовы трансформировать ваш район?",
+                    sub: "Свяжитесь с нами и получите персональную демонстрацию SaDaS® Cairo",
+                    name: "Ваше имя", email: "Email", org: "Организация / Город",
+                    btn: "Запросить живую демонстрацию"
+                },
+                footer: {
+                    tagline: "Smart District as a Service",
+                    platform: "Платформа", p1: "Digital Twin", p2: "AI Engine", p3: "GIS",
+                    solutions: "Решения", s1: "Жилые районы", s2: "Бизнес-парки", s3: "Промышленные зоны",
+                    company: "Компания", c1: "О нас", c2: "Контакты", c3: "Карьера"
+                }
+            },
+            zh: {
+                nav: { platform: "平台", modules: "模块", benefits: "优势", useCases: "应用场景" },
+                header: { demo: "请求演示", start: "启动项目" },
+                hero: {
+                    badge: "AI原生城市操作系统",
+                    title1: "构建", title2: "自主", title3: "城区", title4: "的未来",
+                    desc: "SaDaS® Cairo — 面向城市区域数字化转型的AI平台。用于监控、预测和自主管理所有城市基础设施的统一系统。",
+                    demoBtn: "请求演示", videoBtn: "观看视频",
+                    trust: "受领导者信赖", trustDetail: "住房部 • 开罗省政府",
+                    statusLabel: "区域状态", statusValue: "最优",
+                    energy: "能源", traffic: "交通", trafficVal: "已优化", safety: "安全", safetyVal: "高",
+                    scroll: "滚动"
+                },
+                platform: {
+                    title1: "一个平台。", title2: "所有城市系统。",
+                    sub: "适用于现代城市区域运营各方面的集成解决方案",
+                    card1: { title: "数字孪生", desc: "实时3D区域表示，完整数据同步。" },
+                    card2: { title: "地理空间智能", desc: "交互式GIS系统，支持空间分析和决策。" },
+                    card3: { title: "AI决策引擎", desc: "预测分析和所有流程的自主优化。" }
+                },
+                modules: {
+                    title: "核心平台模块",
+                    m1: "数字孪生平台", m2: "GIS智能引擎", m3: "AI代理网络",
+                    m4: "智能建筑", m5: "出行与交通", m6: "安全与防护",
+                    m7: "能源与环境", m8: "市民参与"
+                },
+                arch: {
+                    title: "平台架构",
+                    dataSrc: "数据源", dataTags: "IoT • CCTV • GIS • BIM • ERP • 无人机",
+                    fabric: "SaDaS 智能结构",
+                    middle: "AI • 数字孪生 • 空间分析 • 自动化",
+                    bottom: "仪表盘 • 指挥中心 • 移动应用 • API"
+                },
+                benefits: {
+                    title: "关键优势",
+                    b1: { title: "实时", desc: "实时全面运营感知" },
+                    b2: { title: "降低成本", desc: "优化基础设施和资源" },
+                    b3: { title: "预测性", desc: "预测性维护和事件预防" }
+                },
+                usecases: {
+                    title: "应用场景",
+                    uc1: "住宅区", uc1d: "舒适、安全、节能",
+                    uc2: "商业园区", uc2d: "智能办公、物流、停车",
+                    uc3: "工业区", uc3d: "监控、安全、优化",
+                    uc4: "生态集群", uc4d: "可持续发展、绿色技术"
+                },
+                cta: {
+                    title: "准备好改造您的区域了吗？",
+                    sub: "联系我们，获取SaDaS® Cairo的个性化演示",
+                    name: "您的姓名", email: "邮箱", org: "组织/城市",
+                    btn: "请求现场演示"
+                },
+                footer: {
+                    tagline: "智慧区域即服务",
+                    platform: "平台", p1: "数字孪生", p2: "AI引擎", p3: "GIS",
+                    solutions: "解决方案", s1: "住宅区", s2: "商业园区", s3: "工业区",
+                    company: "公司", c1: "关于我们", c2: "联系方式", c3: "职业"
+                }
+            },
+            es: {
+                nav: { platform: "Plataforma", modules: "Módulos", benefits: "Beneficios", useCases: "Casos de uso" },
+                header: { demo: "Solicitar demo", start: "Iniciar proyecto" },
+                hero: {
+                    badge: "SO urbano nativo de IA",
+                    title1: "Construya el", title2: "Distrito", title3: "Autónomo", title4: "del Mañana",
+                    desc: "SaDaS® Cairo — plataforma de IA para la transformación digital de distritos urbanos. Un sistema unificado para monitoreo, pronóstico y gestión autónoma de toda la infraestructura urbana.",
+                    demoBtn: "Solicitar demo", videoBtn: "Ver video",
+                    trust: "Confían los líderes", trustDetail: "Ministerio de Vivienda • Gobernación de El Cairo",
+                    statusLabel: "Estado del distrito", statusValue: "Óptimo",
+                    energy: "Energía", traffic: "Tráfico", trafficVal: "Optimizado", safety: "Seguridad", safetyVal: "Alta",
+                    scroll: "DESPLAZAR"
+                },
+                platform: {
+                    title1: "Una plataforma.", title2: "Todos los sistemas urbanos.",
+                    sub: "Solución integrada para todos los aspectos de la operación de distritos urbanos modernos",
+                    card1: { title: "Digital Twin", desc: "Representación 3D en tiempo real del distrito con sincronización completa de datos." },
+                    card2: { title: "GeoSpatial Intelligence", desc: "Sistema GIS interactivo con análisis espacial y soporte de decisiones." },
+                    card3: { title: "AI Decision Engine", desc: "Análisis predictivo y optimización autónoma de todos los procesos." }
+                },
+                modules: {
+                    title: "Módulos principales de la plataforma",
+                    m1: "Digital Twin Platform", m2: "GIS Intelligence Engine", m3: "AI Agent Mesh",
+                    m4: "Smart Buildings", m5: "Movilidad y Tráfico", m6: "Seguridad",
+                    m7: "Energía y Medio Ambiente", m8: "Participación ciudadana"
+                },
+                arch: {
+                    title: "Arquitectura de la plataforma",
+                    dataSrc: "Fuentes de datos", dataTags: "IoT • CCTV • GIS • BIM • ERP • Drones",
+                    fabric: "SaDaS Intelligence Fabric",
+                    middle: "AI • Digital Twin • Spatial Analytics • Automation",
+                    bottom: "Dashboards • Command Center • Mobile Apps • APIs"
+                },
+                benefits: {
+                    title: "Beneficios clave",
+                    b1: { title: "Tiempo real", desc: "Conciencia operativa completa en tiempo real" },
+                    b2: { title: "Reducción de costos", desc: "Optimización de infraestructura y recursos" },
+                    b3: { title: "Predictivo", desc: "Mantenimiento predictivo y prevención de incidentes" }
+                },
+                usecases: {
+                    title: "Casos de uso",
+                    uc1: "Distritos residenciales", uc1d: "Comodidad, seguridad, eficiencia energética",
+                    uc2: "Parques empresariales", uc2d: "Oficinas inteligentes, logística, estacionamiento",
+                    uc3: "Zonas industriales", uc3d: "Monitoreo, seguridad, optimización",
+                    uc4: "Eco-clústeres", uc4d: "Desarrollo sostenible, tecnología verde"
+                },
+                cta: {
+                    title: "¿Listo para transformar su distrito?",
+                    sub: "Contáctenos y obtenga una demostración personal de SaDaS® Cairo",
+                    name: "Su nombre", email: "Correo", org: "Organización / Ciudad",
+                    btn: "Solicitar demo en vivo"
+                },
+                footer: {
+                    tagline: "Smart District as a Service",
+                    platform: "Plataforma", p1: "Digital Twin", p2: "AI Engine", p3: "GIS",
+                    solutions: "Soluciones", s1: "Residencial", s2: "Parques empresariales", s3: "Zonas industriales",
+                    company: "Compañía", c1: "Acerca de", c2: "Contactos", c3: "Carreras"
+                }
+            },
+            hi: {
+                nav: { platform: "मंच", modules: "मॉड्यूल", benefits: "लाभ", useCases: "उपयोग के मामले" },
+                header: { demo: "डेमो अनुरोध करें", start: "प्रोजेक्ट शुरू करें" },
+                hero: {
+                    badge: "AI-नेटिव शहरी OS",
+                    title1: "निर्माण करें", title2: "स्वायत्त", title3: "जिला", title4: "कल का",
+                    desc: "SaDaS® Cairo — शहरी जिलों के डिजिटल परिवर्तन के लिए AI-प्लेटफॉर्म। सभी शहरी बुनियादी ढांचे की निगरानी, पूर्वानुमान और स्वायत्त प्रबंधन के लिए एकीकृत प्रणाली।",
+                    demoBtn: "डेमो अनुरोध करें", videoBtn: "वीडियो देखें",
+                    trust: "नेताओं द्वारा विश्वसनीय", trustDetail: "आवास मंत्रालय • काहिरा गवर्नरेट",
+                    statusLabel: "जिला स्थिति", statusValue: "इष्टतम",
+                    energy: "ऊर्जा", traffic: "यातायात", trafficVal: "अनुकूलित", safety: "सुरक्षा", safetyVal: "उच्च",
+                    scroll: "स्क्रॉल करें"
+                },
+                platform: {
+                    title1: "एक मंच।", title2: "हर शहरी प्रणाली।",
+                    sub: "आधुनिक शहरी जिला संचालन के सभी पहलुओं के लिए एकीकृत समाधान",
+                    card1: { title: "डिजिटल ट्विन", desc: "पूर्ण डेटा सिंक्रनाइज़ेशन के साथ जिले का वास्तविक समय 3D प्रतिनिधित्व।" },
+                    card2: { title: "जियोस्पैटियल इंटेलिजेंस", desc: "स्थानिक विश्लेषण और निर्णय समर्थन के साथ इंटरैक्टिव GIS प्रणाली।" },
+                    card3: { title: "AI निर्णय इंजन", desc: "भविष्यसूचक विश्लेषण और सभी प्रक्रियाओं का स्वायत्त अनुकूलन।" }
+                },
+                modules: {
+                    title: "मुख्य प्लेटफ़ॉर्म मॉड्यूल",
+                    m1: "डिजिटल ट्विन प्लेटफॉर्म", m2: "GIS इंटेलिजेंस इंजन", m3: "AI एजेंट मेश",
+                    m4: "स्मार्ट बिल्डिंग", m5: "गतिशीलता और यातायात", m6: "सुरक्षा और संरक्षा",
+                    m7: "ऊर्जा और पर्यावरण", m8: "नागरिक सहभागिता"
+                },
+                arch: {
+                    title: "प्लेटफ़ॉर्म आर्किटेक्चर",
+                    dataSrc: "डेटा स्रोत", dataTags: "IoT • CCTV • GIS • BIM • ERP • ड्रोन",
+                    fabric: "SaDaS इंटेलिजेंस फैब्रिक",
+                    middle: "AI • डिजिटल ट्विन • स्थानिक विश्लेषण • स्वचालन",
+                    bottom: "डैशबोर्ड • कमांड सेंटर • मोबाइल ऐप्स • APIs"
+                },
+                benefits: {
+                    title: "मुख्य लाभ",
+                    b1: { title: "वास्तविक समय", desc: "वास्तविक समय में पूर्ण परिचालन जागरूकता" },
+                    b2: { title: "लागत में कमी", desc: "बुनियादी ढांचे और संसाधनों का अनुकूलन" },
+                    b3: { title: "भविष्यसूचक", desc: "भविष्यसूचक रखरखाव और घटना की रोकथाम" }
+                },
+                usecases: {
+                    title: "उपयोग के मामले",
+                    uc1: "आवासीय जिले", uc1d: "आराम, सुरक्षा, ऊर्जा दक्षता",
+                    uc2: "व्यापार पार्क", uc2d: "स्मार्ट कार्यालय, लॉजिस्टिक्स, पार्किंग",
+                    uc3: "औद्योगिक क्षेत्र", uc3d: "निगरानी, सुरक्षा, अनुकूलन",
+                    uc4: "इको-क्लस्टर", uc4d: "स्थायी विकास, हरित प्रौद्योगिकी"
+                },
+                cta: {
+                    title: "क्या आप अपने जिले को बदलने के लिए तैयार हैं?",
+                    sub: "हमसे संपर्क करें और SaDaS® Cairo का व्यक्तिगत प्रदर्शन प्राप्त करें",
+                    name: "आपका नाम", email: "ईमेल", org: "संगठन / शहर",
+                    btn: "लाइव डेमो अनुरोध करें"
+                },
+                footer: {
+                    tagline: "स्मार्ट डिस्ट्रिक्ट ऐज़ ए सर्विस",
+                    platform: "मंच", p1: "डिजिटल ट्विन", p2: "AI इंजन", p3: "GIS",
+                    solutions: "समाधान", s1: "आवासीय", s2: "व्यापार पार्क", s3: "औद्योगिक क्षेत्र",
+                    company: "कंपनी", c1: "हमारे बारे में", c2: "संपर्क", c3: "करियर"
+                }
+            },
+            ar: {
+                nav: { platform: "المنصة", modules: "الوحدات", benefits: "المزايا", useCases: "حالات الاستخدام" },
+                header: { demo: "طلب عرض توضيحي", start: "بدء المشروع" },
+                hero: {
+                    badge: "نظام تشغيل حضري أصلي بالذكاء الاصطناعي",
+                    title1: "ابنِ", title2: "المنطقة", title3: "المستقلة", title4: "للغد",
+                    desc: "SaDaS® Cairo — منصة ذكاء اصطناعي للتحول الرقمي للأحياء الحضرية. نظام موحد للمراقبة والتنبؤ والإدارة الذاتية لجميع البنية التحتية للمدينة.",
+                    demoBtn: "طلب عرض توضيحي", videoBtn: "مشاهدة الفيديو",
+                    trust: "موثوق من قبل القادة", trustDetail: "وزارة الإسكان • محافظة القاهرة",
+                    statusLabel: "حالة المنطقة", statusValue: "مثالي",
+                    energy: "الطاقة", traffic: "حركة المرور", trafficVal: "محسّن", safety: "الأمان", safetyVal: "عالٍ",
+                    scroll: "مرر"
+                },
+                platform: {
+                    title1: "منصة واحدة.", title2: "كل نظام حضري.",
+                    sub: "حل متكامل لجميع جوانب تشغيل الأحياء الحضرية الحديثة",
+                    card1: { title: "التوأم الرقمي", desc: "تمثيل ثلاثي الأبعاد في الوقت الفعلي للمنطقة مع مزامنة كاملة للبيانات." },
+                    card2: { title: "الذكاء المكاني", desc: "نظام GIS تفاعلي مع تحليل مكاني ودعم القرار." },
+                    card3: { title: "محرك قرارات الذكاء الاصطناعي", desc: "تحليلات تنبؤية وتحسين ذاتي لجميع العمليات." }
+                },
+                modules: {
+                    title: "الوحدات الأساسية للمنصة",
+                    m1: "منصة التوأم الرقمي", m2: "محرك الذكاء المكاني GIS", m3: "شبكة عملاء الذكاء الاصطناعي",
+                    m4: "المباني الذكية", m5: "التنقل وحركة المرور", m6: "الأمن والسلامة",
+                    m7: "الطاقة والبيئة", m8: "مشاركة المواطنين"
+                },
+                arch: {
+                    title: "هندسة المنصة",
+                    dataSrc: "مصادر البيانات", dataTags: "IoT • CCTV • GIS • BIM • ERP • طائرات بدون طيار",
+                    fabric: "SaDaS Intelligence Fabric",
+                    middle: "الذكاء الاصطناعي • التوأم الرقمي • التحليل المكاني • الأتمتة",
+                    bottom: "لوحات المعلومات • مركز القيادة • تطبيقات الجوال • APIs"
+                },
+                benefits: {
+                    title: "المزايا الرئيسية",
+                    b1: { title: "الوقت الفعلي", desc: "وعي تشغيلي كامل في الوقت الفعلي" },
+                    b2: { title: "خفض التكاليف", desc: "تحسين البنية التحتية والموارد" },
+                    b3: { title: "تنبؤي", desc: "الصيانة التنبؤية ومنع الحوادث" }
+                },
+                usecases: {
+                    title: "حالات الاستخدام",
+                    uc1: "الأحياء السكنية", uc1d: "الراحة، الأمان، كفاءة الطاقة",
+                    uc2: "الحدائق التجارية", uc2d: "المكاتب الذكية، الخدمات اللوجستية، مواقف السيارات",
+                    uc3: "المناطق الصناعية", uc3d: "المراقبة، السلامة، التحسين",
+                    uc4: "المجموعات البيئية", uc4d: "التنمية المستدامة، التكنولوجيا الخضراء"
+                },
+                cta: {
+                    title: "هل أنت مستعد لتحويل منطقتك؟",
+                    sub: "اتصل بنا واحصل على عرض توضيحي شخصي لـ SaDaS® Cairo",
+                    name: "اسمك", email: "البريد الإلكتروني", org: "المنظمة / المدينة",
+                    btn: "طلب عرض توضيحي مباشر"
+                },
+                footer: {
+                    tagline: "المنطقة الذكية كخدمة",
+                    platform: "المنصة", p1: "التوأم الرقمي", p2: "محرك الذكاء الاصطناعي", p3: "GIS",
+                    solutions: "الحلول", s1: "سكني", s2: "الحدائق التجارية", s3: "المناطق الصناعية",
+                    company: "الشركة", c1: "معلومات عنا", c2: "جهات الاتصال", c3: "الوظائف"
+                }
+            },
+            bn: {
+                nav: { platform: "প্ল্যাটফর্ম", modules: "মডিউল", benefits: "সুবিধা", useCases: "ব্যবহারের ক্ষেত্র" },
+                header: { demo: "ডেমো অনুরোধ করুন", start: "প্রকল্প শুরু করুন" },
+                hero: {
+                    badge: "AI-নেটিভ শহুরে OS",
+                    title1: "নির্মাণ করুন", title2: "স্বায়ত্তশাসিত", title3: "জেলা", title4: "আগামীকালের",
+                    desc: "SaDaS® Cairo — শহুরে জেলাগুলির ডিজিটাল রূপান্তরের জন্য AI-প্ল্যাটফর্ম। সমস্ত শহুরে অবকাঠামো পর্যবেক্ষণ, পূর্বাভাস এবং স্বায়ত্তশাসিত পরিচালনার জন্য একটি সমন্বিত ব্যবস্থা।",
+                    demoBtn: "ডেমো অনুরোধ করুন", videoBtn: "ভিডিও দেখুন",
+                    trust: "নেতাদের দ্বারা বিশ্বস্ত", trustDetail: "হাউজিং মন্ত্রণালয় • কায়রো গভর্নরেট",
+                    statusLabel: "জেলার অবস্থা", statusValue: "সর্বোত্তম",
+                    energy: "শক্তি", traffic: "ট্রাফিক", trafficVal: "অপ্টিমাইজড", safety: "নিরাপত্তা", safetyVal: "উচ্চ",
+                    scroll: "স্ক্রোল"
+                },
+                platform: {
+                    title1: "একটি প্ল্যাটফর্ম।", title2: "প্রতিটি শহুরে সিস্টেম।",
+                    sub: "আধুনিক শহুরে জেলা পরিচালনার সকল দিকের জন্য সমন্বিত সমাধান",
+                    card1: { title: "ডিজিটাল টুইন", desc: "সম্পূর্ণ ডেটা সিঙ্ক্রোনাইজেশন সহ জেলার রিয়েল-টাইম 3D উপস্থাপনা।" },
+                    card2: { title: "জিওস্পেশিয়াল ইন্টেলিজেন্স", desc: "স্থানিক বিশ্লেষণ এবং সিদ্ধান্ত সমর্থন সহ ইন্টারেক্টিভ GIS সিস্টেম।" },
+                    card3: { title: "AI সিদ্ধান্ত ইঞ্জিন", desc: "ভবিষ্যদ্বাণীপূর্ণ বিশ্লেষণ এবং সমস্ত প্রক্রিয়ার স্বায়ত্তশাসিত অপ্টিমাইজেশন।" }
+                },
+                modules: {
+                    title: "মূল প্ল্যাটফর্ম মডিউল",
+                    m1: "ডিজিটাল টুইন প্ল্যাটফর্ম", m2: "GIS ইন্টেলিজেন্স ইঞ্জিন", m3: "AI এজেন্ট মেশ",
+                    m4: "স্মার্ট বিল্ডিং", m5: "গতিশীলতা এবং ট্রাফিক", m6: "নিরাপত্তা ও সুরক্ষা",
+                    m7: "শক্তি ও পরিবেশ", m8: "নাগরিক সম্পৃক্ততা"
+                },
+                arch: {
+                    title: "প্ল্যাটফর্ম আর্কিটেকচার",
+                    dataSrc: "ডেটা উৎস", dataTags: "IoT • CCTV • GIS • BIM • ERP • ড্রোন",
+                    fabric: "SaDaS ইন্টেলিজেন্স ফ্যাব্রিক",
+                    middle: "AI • ডিজিটাল টুইন • স্থানিক বিশ্লেষণ • স্বয়ংক্রিয়তা",
+                    bottom: "ড্যাশবোর্ড • কমান্ড সেন্টার • মোবাইল অ্যাপ • APIs"
+                },
+                benefits: {
+                    title: "মূল সুবিধা",
+                    b1: { title: "রিয়েল-টাইম", desc: "রিয়েল টাইমে সম্পূর্ণ অপারেশনাল সচেতনতা" },
+                    b2: { title: "খরচ কমানো", desc: "অবকাঠামো এবং সম্পদের অপ্টিমাইজেশন" },
+                    b3: { title: "ভবিষ্যদ্বাণীপূর্ণ", desc: "ভবিষ্যদ্বাণীপূর্ণ রক্ষণাবেক্ষণ এবং দুর্ঘটনা প্রতিরোধ" }
+                },
+                usecases: {
+                    title: "ব্যবহারের ক্ষেত্র",
+                    uc1: "আবাসিক জেলা", uc1d: "আরাম, নিরাপত্তা, শক্তি দক্ষতা",
+                    uc2: "ব্যবসায়িক পার্ক", uc2d: "স্মার্ট অফিস, লজিস্টিকস, পার্কিং",
+                    uc3: "শিল্প অঞ্চল", uc3d: "মনিটরিং, নিরাপত্তা, অপ্টিমাইজেশন",
+                    uc4: "ইকো-ক্লাস্টার", uc4d: "টেকসই উন্নয়ন, সবুজ প্রযুক্তি"
+                },
+                cta: {
+                    title: "আপনার জেলা রূপান্তর করতে প্রস্তুত?",
+                    sub: "আমাদের সাথে যোগাযোগ করুন এবং SaDaS® Cairo এর ব্যক্তিগত প্রদর্শনী পান",
+                    name: "আপনার নাম", email: "ইমেইল", org: "সংস্থা / শহর",
+                    btn: "লাইভ ডেমো অনুরোধ করুন"
+                },
+                footer: {
+                    tagline: "স্মার্ট ডিস্ট্রিক্ট অ্যাজ এ সার্ভিস",
+                    platform: "প্ল্যাটফর্ম", p1: "ডিজিটাল টুইন", p2: "AI ইঞ্জিন", p3: "GIS",
+                    solutions: "সমাধান", s1: "আবাসিক", s2: "ব্যবসায়িক পার্ক", s3: "শিল্প অঞ্চল",
+                    company: "কোম্পানি", c1: "আমাদের সম্পর্কে", c2: "যোগাযোগ", c3: "ক্যারিয়ার"
+                }
+            },
+            pt: {
+                nav: { platform: "Plataforma", modules: "Módulos", benefits: "Benefícios", useCases: "Casos de uso" },
+                header: { demo: "Solicitar demonstração", start: "Iniciar projeto" },
+                hero: {
+                    badge: "SO urbano nativo em IA",
+                    title1: "Construa o", title2: "Distrito", title3: "Autônomo", title4: "do Amanhã",
+                    desc: "SaDaS® Cairo — plataforma de IA para transformação digital de distritos urbanos. Um sistema unificado para monitoramento, previsão e gestão autônoma de toda a infraestrutura urbana.",
+                    demoBtn: "Solicitar demonstração", videoBtn: "Assistir vídeo",
+                    trust: "Confiado por líderes", trustDetail: "Ministério da Habitação • Governo do Cairo",
+                    statusLabel: "Status do distrito", statusValue: "Ótimo",
+                    energy: "Energia", traffic: "Tráfego", trafficVal: "Otimizado", safety: "Segurança", safetyVal: "Alta",
+                    scroll: "ROLAR"
+                },
+                platform: {
+                    title1: "Uma plataforma.", title2: "Todos os sistemas urbanos.",
+                    sub: "Solução integrada para todos os aspectos da operação de distritos urbanos modernos",
+                    card1: { title: "Gêmeo Digital", desc: "Representação 3D em tempo real do distrito com sincronização completa de dados." },
+                    card2: { title: "Inteligência Geoespacial", desc: "Sistema GIS interativo com análise espacial e suporte à decisão." },
+                    card3: { title: "Mecanismo de Decisão IA", desc: "Análise preditiva e otimização autônoma de todos os processos." }
+                },
+                modules: {
+                    title: "Módulos principais da plataforma",
+                    m1: "Plataforma Gêmeo Digital", m2: "Mecanismo de Inteligência GIS", m3: "Malha de Agentes IA",
+                    m4: "Edifícios Inteligentes", m5: "Mobilidade e Tráfego", m6: "Segurança e Proteção",
+                    m7: "Energia e Meio Ambiente", m8: "Engajamento Cidadão"
+                },
+                arch: {
+                    title: "Arquitetura da plataforma",
+                    dataSrc: "Fontes de dados", dataTags: "IoT • CCTV • GIS • BIM • ERP • Drones",
+                    fabric: "SaDaS Intelligence Fabric",
+                    middle: "IA • Gêmeo Digital • Análise Espacial • Automação",
+                    bottom: "Painéis • Centro de Comando • Aplicativos Móveis • APIs"
+                },
+                benefits: {
+                    title: "Principais benefícios",
+                    b1: { title: "Tempo real", desc: "Consciência operacional completa em tempo real" },
+                    b2: { title: "Redução de custos", desc: "Otimização de infraestrutura e recursos" },
+                    b3: { title: "Preditivo", desc: "Manutenção preditiva e prevenção de incidentes" }
+                },
+                usecases: {
+                    title: "Casos de uso",
+                    uc1: "Distritos residenciais", uc1d: "Conforto, segurança, eficiência energética",
+                    uc2: "Parques empresariais", uc2d: "Escritórios inteligentes, logística, estacionamento",
+                    uc3: "Zonas industriais", uc3d: "Monitoramento, segurança, otimização",
+                    uc4: "Eco-clusters", uc4d: "Desenvolvimento sustentável, tecnologia verde"
+                },
+                cta: {
+                    title: "Pronto para transformar seu distrito?",
+                    sub: "Entre em contato e obtenha uma demonstração pessoal do SaDaS® Cairo",
+                    name: "Seu nome", email: "E-mail", org: "Organização / Cidade",
+                    btn: "Solicitar demonstração ao vivo"
+                },
+                footer: {
+                    tagline: "Distrito Inteligente como Serviço",
+                    platform: "Plataforma", p1: "Gêmeo Digital", p2: "Mecanismo IA", p3: "GIS",
+                    solutions: "Soluções", s1: "Residencial", s2: "Parques empresariais", s3: "Zonas industriais",
+                    company: "Empresa", c1: "Sobre", c2: "Contatos", c3: "Carreiras"
+                }
+            },
+            ja: {
+                nav: { platform: "プラットフォーム", modules: "モジュール", benefits: "メリット", useCases: "ユースケース" },
+                header: { demo: "デモをリクエスト", start: "プロジェクトを開始" },
+                hero: {
+                    badge: "AIネイティブ都市OS",
+                    title1: "構築する", title2: "自律的な", title3: "地区", title4: "明日の",
+                    desc: "SaDaS® Cairo — 都市地区のデジタルトランスフォーメーションのためのAIプラットフォーム。すべての都市インフラの監視、予測、自律管理のための統合システム。",
+                    demoBtn: "デモをリクエスト", videoBtn: "ビデオを見る",
+                    trust: "リーダーから信頼", trustDetail: "住宅省 • カイロ県",
+                    statusLabel: "地区ステータス", statusValue: "最適",
+                    energy: "エネルギー", traffic: "交通", trafficVal: "最適化済み", safety: "安全性", safetyVal: "高い",
+                    scroll: "スクロール"
+                },
+                platform: {
+                    title1: "ワンプラットフォーム。", title2: "すべての都市システム。",
+                    sub: "現代の都市地区運営のあらゆる側面に対応する統合ソリューション",
+                    card1: { title: "デジタルツイン", desc: "完全なデータ同期を備えた地区のリアルタイム3D表現。" },
+                    card2: { title: "地理空間インテリジェンス", desc: "空間分析と意思決定支援を備えたインタラクティブGISシステム。" },
+                    card3: { title: "AI意思決定エンジン", desc: "予測分析とすべてのプロセスの自律的最適化。" }
+                },
+                modules: {
+                    title: "コアプラットフォームモジュール",
+                    m1: "デジタルツインプラットフォーム", m2: "GISインテリジェンスエンジン", m3: "AIエージェントメッシュ",
+                    m4: "スマートビル", m5: "モビリティと交通", m6: "セキュリティと安全",
+                    m7: "エネルギーと環境", m8: "市民参加"
+                },
+                arch: {
+                    title: "プラットフォームアーキテクチャ",
+                    dataSrc: "データソース", dataTags: "IoT • CCTV • GIS • BIM • ERP • ドローン",
+                    fabric: "SaDaS インテリジェンスファブリック",
+                    middle: "AI • デジタルツイン • 空間分析 • 自動化",
+                    bottom: "ダッシュボード • コマンドセンター • モバイルアプリ • APIs"
+                },
+                benefits: {
+                    title: "主なメリット",
+                    b1: { title: "リアルタイム", desc: "リアルタイムでの完全な運用認識" },
+                    b2: { title: "コスト削減", desc: "インフラとリソースの最適化" },
+                    b3: { title: "予測", desc: "予防保守とインシデント防止" }
+                },
+                usecases: {
+                    title: "ユースケース",
+                    uc1: "住宅地区", uc1d: "快適性、安全性、エネルギー効率",
+                    uc2: "ビジネスパーク", uc2d: "スマートオフィス、物流、駐車場",
+                    uc3: "工業地帯", uc3d: "監視、安全、最適化",
+                    uc4: "エコクラスター", uc4d: "持続可能な開発、グリーンテクノロジー"
+                },
+                cta: {
+                    title: "地区を変革する準備はできていますか？",
+                    sub: "お問い合わせいただき、SaDaS® Cairoの個別デモを入手してください",
+                    name: "お名前", email: "メール", org: "組織 / 都市",
+                    btn: "ライブデモをリクエスト"
+                },
+                footer: {
+                    tagline: "スマートディストリクト・アズ・ア・サービス",
+                    platform: "プラットフォーム", p1: "デジタルツイン", p2: "AIエンジン", p3: "GIS",
+                    solutions: "ソリューション", s1: "住宅", s2: "ビジネスパーク", s3: "工業地帯",
+                    company: "会社", c1: "会社概要", c2: "お問い合わせ", c3: "キャリア"
+                }
+            },
+            lah: {
+                nav: { platform: "پلیٹ فارم", modules: "ماڈیولز", benefits: "فائدے", useCases: "استعمال دے کیس" },
+                header: { demo: "ڈیمو دی درخواست", start: "پروجیکٹ شروع کرو" },
+                hero: {
+                    badge: "اے آئی مقامی شہری او ایس",
+                    title1: "تعمیر کرو", title2: "خود مختار", title3: "ضلع", title4: "کل دا",
+                    desc: "SaDaS® Cairo — شہری ضلعیاں دی ڈیجیٹل تبدیلی لئی اے آئی پلیٹ فارم۔ سارے شہری بنیادی ڈھانچے دی نگرانی، پیشن گوئی تے خود مختار انتظام لئی ہک مربوط نظام۔",
+                    demoBtn: "ڈیمو دی درخواست", videoBtn: "ویڈیو ویکھو",
+                    trust: "لیڈراں ولوں قابل اعتماد", trustDetail: "ہاؤسنگ وزارت • قاہرہ گورنریٹ",
+                    statusLabel: "ضلع دی حالت", statusValue: "بہترین",
+                    energy: "توانائی", traffic: "ٹریفک", trafficVal: "بہتر", safety: "حفاظت", safetyVal: "اعلیٰ",
+                    scroll: "سکرول"
+                },
+                platform: {
+                    title1: "ہک پلیٹ فارم۔", title2: "ہر شہری نظام۔",
+                    sub: "جدید شہری ضلع دی کارروائی دے سارے پہلوآں لئی مربوط حل",
+                    card1: { title: "ڈیجیٹل ٹوئن", desc: "مکمل ڈیٹا ہم آہنگی دے نال ضلع دی ریئل ٹائم 3D نمائندگی۔" },
+                    card2: { title: "جیو اسپیشل انٹیلیجنس", desc: "مقامی تجزیہ تے فیصلے دی معاونت دے نال انٹرایکٹو GIS نظام۔" },
+                    card3: { title: "اے آئی فیصلہ انجن", desc: "پیشن گوئی تجزیہ تے سارے عمل دی خود مختار اصلاح۔" }
+                },
+                modules: {
+                    title: "بنیادی پلیٹ فارم ماڈیولز",
+                    m1: "ڈیجیٹل ٹوئن پلیٹ فارم", m2: "GIS انٹیلیجنس انجن", m3: "اے آئی ایجنٹ میش",
+                    m4: "سمارٹ عمارتاں", m5: "نقل و حرکت تے ٹریفک", m6: "سیکیورٹی تے حفاظت",
+                    m7: "توانائی تے ماحول", m8: "شہری مصروفیت"
+                },
+                arch: {
+                    title: "پلیٹ فارم فن تعمیر",
+                    dataSrc: "ڈیٹا ذرائع", dataTags: "IoT • CCTV • GIS • BIM • ERP • ڈرونز",
+                    fabric: "SaDaS انٹیلیجنس فیبرک",
+                    middle: "اے آئی • ڈیجیٹل ٹوئن • مقامی تجزیہ • آٹومیشن",
+                    bottom: "ڈیش بورڈ • کمانڈ سینٹر • موبائل ایپس • APIs"
+                },
+                benefits: {
+                    title: "اہم فائدے",
+                    b1: { title: "ریئل ٹائم", desc: "ریئل ٹائم وچ مکمل آپریشنل آگاہی" },
+                    b2: { title: "لاگت وچ کمی", desc: "بنیادی ڈھانچے تے وسائل دی اصلاح" },
+                    b3: { title: "پیشن گوئی", desc: "پیشن گوئی دی دیکھ بھال تے واقعے دی روک تھام" }
+                },
+                usecases: {
+                    title: "استعمال دے کیس",
+                    uc1: "رہائشی ضلعے", uc1d: "آرام، حفاظت، توانائی دی کارکردگی",
+                    uc2: "کاروباری پارک", uc2d: "سمارٹ دفاتر، لاجسٹکس، پارکنگ",
+                    uc3: "صنعتی زون", uc3d: "نگرانی، حفاظت، اصلاح",
+                    uc4: "ایکو کلسٹر", uc4d: "پائیدار ترقی، سبز ٹیکنالوجی"
+                },
+                cta: {
+                    title: "کیا تسیں اپنے ضلع کوں تبدیل کرن لئی تیار ہو؟",
+                    sub: "ساڈے نال رابطہ کرو تے SaDaS® Cairo دا ذاتی مظاہرہ حاصل کرو",
+                    name: "تواڈا ناں", email: "ای میل", org: "تنظیم / شہر",
+                    btn: "لائیو ڈیمو دی درخواست کرو"
+                },
+                footer: {
+                    tagline: "سمارٹ ڈسٹرکٹ بطور خدمت",
+                    platform: "پلیٹ فارم", p1: "ڈیجیٹل ٹوئن", p2: "اے آئی انجن", p3: "GIS",
+                    solutions: "حل", s1: "رہائشی", s2: "کاروباری پارک", s3: "صنعتی زون",
+                    company: "کمپنی", c1: "ساڈے بارے", c2: "رابطے", c3: "کیریئر"
+                }
+            }
+        };
+
+        let currentLang = 'en';
+
+        function applyLanguage(lang) {
+            if (!translations[lang]) return;
+            currentLang = lang;
+            const t = translations[lang];
+
+            const rtlLangs = ['ar', 'lah'];
+            document.documentElement.dir = rtlLangs.includes(lang) ? 'rtl' : 'ltr';
+            document.documentElement.lang = lang;
+
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                const val = key.split('.').reduce((o, k) => (o && o[k] !== undefined) ? o[k] : null, t);
+                if (val !== null && val !== undefined) {
+                    if (el.tagName === 'INPUT' && el.hasAttribute('data-i18n-placeholder')) {
+                        el.placeholder = val;
+                    } else {
+                        el.textContent = val;
+                    }
+                }
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                const val = key.split('.').reduce((o, k) => (o && o[k] !== undefined) ? o[k] : null, t);
+                if (val !== null && val !== undefined) {
+                    el.placeholder = val;
+                }
+            });
+
+            const label = document.getElementById('currentLangLabel');
+            if (label) {
+                const map = { en:'EN', ru:'RU', zh:'中文', es:'ES', hi:'HI', ar:'AR', bn:'BN', pt:'PT', ja:'JA', lah:'LAH' };
+                label.textContent = map[lang] || lang.toUpperCase();
+            }
+
+            document.querySelectorAll('.lang-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.lang === lang);
+            });
+        }
+
+        // dropdown
+        const toggle = document.getElementById('langToggle');
+        const menu = document.getElementById('langMenu');
+        toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menu.classList.toggle('hidden');
+        });
+        document.addEventListener('click', () => menu.classList.add('hidden'));
+
+        document.querySelectorAll('.lang-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const lang = item.dataset.lang;
+                applyLanguage(lang);
+                menu.classList.add('hidden');
+            });
+        });
+
+        // mobile menu toggle
+        const mobileToggle = document.getElementById('mobileMenuToggle');
+        const mobileMenu = document.getElementById('mobileMenu');
+        mobileToggle.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // back to top
+        const backBtn = document.getElementById('backToTop');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 400) {
+                backBtn.classList.add('visible');
+            } else {
+                backBtn.classList.remove('visible');
+            }
+        });
+        backBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // default english
+        applyLanguage('en');
+    })();
+</script>
+
+</body>
+</html>
